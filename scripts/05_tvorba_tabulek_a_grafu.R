@@ -3,6 +3,8 @@ xfun::pkg_attach2("tidyverse",
 
 tab <- read_rds("results/milesovsky_potok_krajinny_pokryv_esa_worldcover.rds")
 
+tab
+
 tab <- tab |> 
   mutate(across(val_num:fraction, 
                 \(x) round(x, 2))) |> 
@@ -16,6 +18,9 @@ tab <- tab |>
 
 tabulka <- gt(tab,
               caption = "Třídy krajinného pokryvu v povodí Milešovského potoka dle ESA World Cover")
+
+tabulka |> 
+  gtsave("results/milesovsky_potok_krajinne_tridy.html")
 
 tab2 <- read_rds("results/milesovsky_potok_denni_srazky_era5-land.rds")
 
@@ -66,3 +71,30 @@ tab2 |>
   scale_x_continuous(breaks = seq(1951, 2024, 5)) + 
   labs(x = "rok",
        y = "úhrn [mm]")
+
+tab3 <- tab2 |> 
+  filter(between(date, ymd(19510101), ymd(20241231))) |> 
+  group_by(year = year(date),
+           month = month(date)) |> 
+  summarize(val_num = sum(val_num))
+
+tab3
+
+library(SCI)
+
+spi.12.para <- fitSCI(tab3$val_num,
+                      first.mon = 1,
+                      time.scale = 12,
+                      distr = "gamma",
+                      p0 = TRUE)
+
+spi.12 <- transformSCI(tab3$val_num,
+                       first.mon = 1,
+                       obj = spi.12.para)
+
+matplot(seq(ymd(19510101), ymd(20241201), "month"),
+        cbind(spi.12),
+        t = "l",
+        lty = 1,
+        col = c("red", "blue"),
+        lwd=c(1, 2))
