@@ -159,21 +159,28 @@ spi.12.tab <- tibble(date = seq(ymd(19510101), ymd(20241201), "month"),
                      val_num = spi.12)
 
 # nyní můžeme kreslit
-ggplot(data = spi.12.tab) + 
-  geom_line(aes(x = date,
-                y = val_num)) + 
-  geom_hline(yintercept = 0,
-             lwd = 1.5) +
-  geom_area(aes(x = date,
-                ymin = val_num - 1,
-                ymax = val_num + 1))
-
-
-
-spi.12
-matplot(seq(ymd(19510101), ymd(20241201), "month"),
-        cbind(spi.12),
-        t = "l",
-        lty = 1,
-        col = c("red", "blue"),
-        lwd=c(1, 2))
+ggplot(data = spi.12.tab |> 
+         mutate(ubound = if_else(val_num >= 1, val_num, NA), # z důvodu znázornění barevných plošek tvoříme nové proměnné
+                lbound = if_else(val_num <= -1, val_num, NA)),
+       aes(x = date,
+           y = val_num)) + 
+  geom_line() + # černá (hraniční) čára
+  geom_hline(yintercept = 0, # tlustá horizontální čára
+             lwd = 1.5) + 
+  geom_hline(yintercept = 1, # horní tečkovaná horizontální čára
+             lty = "dotted") + 
+  geom_hline(yintercept = -1, # dolní tečkovaná horizontální čára
+             lty = "dotted") +
+  geom_ribbon(aes(ymax = ubound, # modré plošky značící vlhká období
+                  ymin = 1),
+              fill = "blue") +
+  geom_ribbon(aes(ymax = -1, # červené plošky značící suchá období
+                  ymin = lbound),
+              fill = "red") + 
+  scale_x_date(date_labels = "%m/%Y", # trochu lepší reprezentace měsíců na ose x
+               breaks = seq(ymd(19520101), ymd(20241201), by = "10 years")) +
+  labs(x = "měsíc",
+       y = "SPI12 (de facto směrodatné odchylky)",
+       title = "Index SPI12 pro povodí Milešovského potoka",
+       subtitle = "(uvažovány roky 1951 až 2024; hodnoty nad 1 značí vlhké období, hodnoty pod -1 značí suché období)",
+       caption = "zdroj data: ERA5-Land, redukováno skrze Google Earth Engine API")
