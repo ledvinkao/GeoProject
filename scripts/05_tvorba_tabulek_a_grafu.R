@@ -180,7 +180,7 @@ ggplot(data = spi.12.tab |>
   scale_x_date(date_labels = "%m/%Y", # trochu lepší reprezentace měsíců na ose x
                breaks = seq(ymd(19520101), ymd(20241201), by = "10 years")) +
   labs(x = "měsíc",
-       y = "SPI12 (de facto směrodatné odchylky)",
+       y = "SPI12 (de facto násobky směrodatné odchylky)",
        title = "Index SPI12 pro povodí Milešovského potoka",
        subtitle = "(uvažovány roky 1951 až 2024; hodnoty nad 1 značí vlhké období, hodnoty pod -1 značí suché období)",
        caption = "zdroj data: ERA5-Land, redukováno skrze Google Earth Engine API")
