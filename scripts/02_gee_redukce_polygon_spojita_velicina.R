@@ -56,7 +56,7 @@ data <- catch$map(\(feature) { # mapování přes polygony (ale aktuálně máme
         image$reduceRegion(
           reducer = ee$Reducer$mean(),
           geometry = feature$geometry(),
-          scale = 11100, # pokud možno, řídíme se detailním horizontálním rozlišením (jinak mohou být aplikovány reducery s nad menším rozlišením)
+          scale = 11100, # pokud možno, řídíme se detailním horizontálním rozlišením (jinak mohou být aplikovány reducery nad menším rozlišením)
           maxPixels = 1e+09, # zde zbytečné, protože tolik buněk určitě mít v polygonu nebudeme (ale může se hodit při jiných aplikacích třeba i s navýšením)
           bestEffort = TRUE # pokud počet buněk v polygonu přesáhne určitou mez, přepne se na horší rozlišení
         )
@@ -95,7 +95,7 @@ res2 <- res |>
   select(date,
          val_num = total_precipitation_sum)
 
-# asi by to chtělo ještě respektovat fakt, že srážky se uvádí s přesností na desetiny mimimentru
+# asi by to chtělo ještě respektovat fakt, že srážky se uvádí s přesností na desetiny milimetru
 # bacha na původní jednotky, kterými jsou metry!; viz https://developers.google.com/earth-engine/datasets/catalog/ECMWF_ERA5_LAND_DAILY_AGGR#bands
 res2 <- res2 |> 
   mutate(val_num = units::set_units(val_num, "m") |> # jsme líní si sami posunout desetinnou tečku:-)
