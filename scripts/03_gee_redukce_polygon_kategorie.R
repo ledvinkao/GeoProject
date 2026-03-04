@@ -73,7 +73,7 @@ data_no_geom <- data |>
 
 # a konvertujeme na lokální dataset
 tictoc::tic(); res <- ee_as_sf(data_no_geom,
-                               via = "drive"); tictoc::toc(); beepr::beep(3)
+                               via = "getInfo"); tictoc::toc(); beepr::beep(3)
 
 # nejdůležitější výsledky jsou ve sloupci groups
 # ale musíme se k nim nějak dostat
