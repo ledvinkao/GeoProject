@@ -11,15 +11,15 @@ xfun::pkg_attach2("tidyverse",
                   "tidyrgee")
 
 # připojíme se
-ee_Initialize(user = "ledvinka@natur.cuni.cz",
-              drive = T)
+# výsledná data nejsou tak velká, takže není vyžadováno zpracování přes Drive
+ee_Initialize(user = "ledvinka@natur.cuni.cz")
 
 # odkážeme se na polygon
 catch <- ee$FeatureCollection("users/ledvinka/milesovsky")
 
-# odkážeme se na obě kolekce (každá reprezentuje jiný rok)
+# odkážeme se na dvě kolekce (každá reprezentuje jiný rok) s krajinným pokryvem, kde horizontální rozlišení je 10 m
 # vybíráme jedný obrázek, který v kolekci vždycky je
-esa1 <- ee$ImageCollection("ESA/WorldCover/v100")$first()
+esa1 <- ee$ImageCollection("ESA/WorldCover/v100")$first() # potřebujeme vždy jen první obrázek
 
 esa2 <- ee$ImageCollection("ESA/WorldCover/v200")$first()
 
@@ -37,7 +37,7 @@ esa <- esa$map(\(x)
 
 # dvojitý mapping je opět vhodný pro vektorové vrstvy s více polygony
 data <- catch$map(\(feature) {
-  esa$map(
+  esa$filterBounds(feature$geometry())$map(
     \(image) {
       ee$Feature(
         feature$geometry(),
