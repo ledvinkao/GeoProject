@@ -18,7 +18,7 @@ ee_Initialize(user = "ledvinka@natur.cuni.cz")
 catch <- ee$FeatureCollection("users/ledvinka/milesovsky")
 
 # odkážeme se na dvě kolekce (každá reprezentuje jiný rok) s krajinným pokryvem, kde horizontální rozlišení je 10 m
-# vybíráme jedný obrázek, který v kolekci vždycky je
+# vybíráme jediný obrázek, který v kolekci vždycky je
 esa1 <- ee$ImageCollection("ESA/WorldCover/v100")$first() # potřebujeme vždy jen první obrázek
 
 esa2 <- ee$ImageCollection("ESA/WorldCover/v200")$first()
@@ -53,7 +53,7 @@ data <- catch$map(\(feature) {
         )
       )$set(
         list(
-          year = image$get('system:index') # potřebujeme do výsledku dostat nějakou informaci o roku
+          year = image$get('system:index') # potřebujeme do výsledku dostat nějakou informaci o roku; tady to jde rovnou z obrázků, protože ve vlastnostech tato informace pořád je
         )
       )$copyProperties(feature)
     }
@@ -72,6 +72,8 @@ data_no_geom <- data |>
   )
 
 # a konvertujeme na lokální dataset
+# argument via = 'getInfo' je vybrán automaticky bez vyplnění, zde tohle tedy uvádíme jen pro demonstraci
+# kromě zahrání zvuku si ještě můžeme měřit čas (balíček tictoc busí být nainstalovaný, jestliže využíváme tento konstrukt)
 tictoc::tic(); res <- ee_as_sf(data_no_geom,
                                via = "getInfo"); tictoc::toc(); beepr::beep(3)
 
@@ -81,8 +83,7 @@ tictoc::tic(); res <- ee_as_sf(data_no_geom,
 res2 <- res |> 
   st_drop_geometry() |> 
   mutate(split = map(groups,
-                     \(x) str_split(x, ",") |> 
-                       unlist()) |> 
+                     \(x) str_split_1(x, ",")) |> 
            map(\(x) map_dbl(x, 
                             \(y) parse_number(y))))
 
@@ -93,17 +94,16 @@ res2 <- res2 |>
 
 # tohle je  pro případy přidání nul za roky, kde se nějaká třída nevyskytla, ale jinak se běžně vyskytuje
 out <- res2 |> 
-  select(id,
+  select(id = OBJECTID,
          year,
          tab) |> 
   unnest(tab) |> 
   mutate(year = as.numeric(year)) |> 
   group_by(id) |> 
   nest(data = year:val_num) |> 
-  mutate(data = data |> 
-           map(\(x) complete(x,
-                             year,
-                             class))) |> 
+  mutate(data = map(data, \(x) complete(x,
+                                        year,
+                                        class))) |> 
   unnest(data) |> 
   arrange(id,
           year,
@@ -141,4 +141,4 @@ out <- out |>
 out |> 
   write_rds("milesovsky_potok_krajinny_pokryv_esa_worldcover.rds")
 
-# změnilo se něco mezi lety 2020 2021 v našem povodí?
+# změnilo se něco mezi lety 2020 a 2021 v našem povodí?
