@@ -48,7 +48,7 @@ tabulka |>
 # načteme podkladovou tabulku s časovými řadami srážek
 # a asi se rovnou omezíme na celé kalendářní roky
 tab2 <- read_rds("results/milesovsky_potok_denni_srazky_era5-land.rds") |> 
-  filter(between(date, ymd(19510101), ymd(20241231)))
+  filter(between(date, ymd(19500101), ymd(20251231)))
 
 # 1) příklad heatmapy ukazující měsíční úhrny za celé vybrané období
 heatmapa <- tab2 |> 
@@ -60,7 +60,7 @@ heatmapa <- tab2 |>
   geom_raster(aes(fill = val_num)) + # zde nastavujeme výplň (jde do legendy)
   scale_fill_distiller(palette = "BuPu", # a tímto měníme paletu barev pro spojitou veličinu (přechod od modré k fialové)
                        direction = 1) + # nastavujeme opačný směr barev od původního, kterým je direction = -1
-  scale_y_continuous(breaks = seq(1951, 2024, 3)) + # hrajeme si trochu také s rozestupy let na ose y
+  scale_y_continuous(breaks = seq(1950, 2025, 3)) + # hrajeme si trochu také s rozestupy let na ose y
   labs(fill = "úhrn [mm]", # popisujeme výplň (jde do legendy)
        x = "měsíc", # osu x
        y = "rok")
@@ -70,7 +70,7 @@ heatmapa
 
 # ukládání grafů do objektů nám dopomůže také k ukládání do souborů - prostudujte funkci ggsave() a její argumenty; pro report v MS Word zřejmě využijeme formát PNG
 
-# 2) příklad sloupcového grafu s dlouhodobými (průměrnými) měsíčními úhrny za období 1951-2024
+# 2) příklad sloupcového grafu s dlouhodobými (průměrnými) měsíčními úhrny za období 1950-2025
 longterm <- tab2 |> 
   group_by(year = year(date),
            month = str_pad(as.character(month(date)), width = 2, pad = "0")) |>  
@@ -100,7 +100,7 @@ annual <- tab2 |>
               se = F, # když nechceme zobrazit pás daný standardní chybou kolem přímky
               col = "red", # barva čáry
               lwd = 2) + # tloušťka čáry
-  scale_x_continuous(breaks = seq(1951, 2024, 5)) + # nastavujeme ještě lepší rozestupy let na ose x)
+  scale_x_continuous(breaks = seq(1950, 2025, 5)) + # nastavujeme ještě lepší rozestupy let na ose x)
   coord_cartesian(ylim = c(300, 850)) + # takto se můžeme ještě zaměřit na část osy y, která je více zajímavá z hlediska interpretace (nemusíme začínat od hodnoty 0 mm)
   labs(x = "rok",
        y = "úhrn [mm]")
@@ -108,6 +108,7 @@ annual <- tab2 |>
 annual
 
 # zkuste také zjistit, zdali je směrnice přímky statisticky významná a v reportu okomentujte
+# lze využít lineární model, tj. funkci lm() pro získání hodnoty regresního koeficientu a jeho p-hodnoty pro model s koeficientem rovným nule
 
 # 4) krabicové grafy pro jednotlivé roky za účelem zjištění, zda se nějak mění variabilita
 boxplots <- tab2 |> 
@@ -115,7 +116,7 @@ boxplots <- tab2 |>
   ggplot() + 
   geom_boxplot(aes(val_num, 
                    as.character(year))) + # potřebujeme kategorie a spojitou veličinu, dle nápovědy funkce geom_boxplot() je orientace krabicového grafu závislá na pořadí proměnných
-  scale_x_sqrt() + # abychom lépe viděli rozdíly, osu x zobrazíme ve vhodnějším měřítku (výhodou je, že s veličinou zůstáváme u stejných jednotek)
+  scale_x_continuous(transform = "sqrt") + # abychom lépe viděli rozdíly, osu x zobrazíme ve vhodnějším měřítku (výhodou je, že s veličinou zůstáváme u stejných jednotek)
   labs(y = "rok",
        x = "úhrn [mm]")
 
@@ -140,13 +141,13 @@ tab3 |>
 
 # k výpočtům řad těchto indexů může dopomoci např. balíček SCI
 # tak jej načtěme
-library(SCI)
+xfun::pkg_attach2("SCI")
 
 # dle nápovědy k funkci fitSCI najděme potřebné parametry
 spi.12.para <- fitSCI(tab3$val_num, # takto vytáhneme sloupec tabulky jako vektor (alternativně můžeme využít i funkci pull())
                       first.mon = 1,
                       time.scale = 12, # jako časové okno zvolíme 12 měsíců, abychom se vyhnuli vlivu sezonnosti
-                      distr = "gamma", # jako rozdělení podle kterého pak transformujeme na Gaussovo rozdělení vezmeme rodělení gama
+                      distr = "gamma", # jako rozdělení podle kterého pak transformujeme na Gaussovo rozdělení, vezmeme rodělení gama
                       p0 = TRUE) # sice žádné nulové hodnoty nejsou, ale kdyby se náhodou v nějaké jiné tabulce vyskytly, je dobré modelovat i výskyt nul
 
 # tímto se dostaneme do měřítek Gaussova rozdělení, a tedy i indexu SPI
@@ -155,7 +156,7 @@ spi.12 <- transformSCI(tab3$val_num,
                        obj = spi.12.para)
 
 # vytvořme si tabulku pro kreslení ve smyslu ggplot2
-spi.12.tab <- tibble(date = seq(ymd(19510101), ymd(20241201), "month"),
+spi.12.tab <- tibble(date = seq(ymd(19500101), ymd(20251201), "month"),
                      val_num = spi.12)
 
 # nyní můžeme kreslit
@@ -178,7 +179,7 @@ ggplot(data = spi.12.tab |>
                   ymin = lbound),
               fill = "red") + 
   scale_x_date(date_labels = "%m/%Y", # trochu lepší reprezentace měsíců na ose x
-               breaks = seq(ymd(19520101), ymd(20241201), by = "10 years")) +
+               breaks = seq(ymd(19510101), ymd(20251201), by = "10 years")) +
   labs(x = "měsíc",
        y = "SPI12 (de facto násobky směrodatné odchylky)",
        title = "Index SPI12 pro povodí Milešovského potoka",
