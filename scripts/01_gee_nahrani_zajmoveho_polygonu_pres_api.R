@@ -32,7 +32,7 @@ catch <- read_sf(str_c("/vsizip/",
 # připojujeme se k GEE
 # specifikujeme uživatele i možnost práce přes Drive
 # každý bude mít svoje údaje
-ee_Initialize(user = "ledvinka@natur.cuni.cz")
+ee_Initialize()
 
 # nastavujeme název assetu v GEE
 # adresář můžeme nastavit podle toho, co vidíme u svého profilu v https://code.earthengine.google.com/

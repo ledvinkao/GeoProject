@@ -13,8 +13,7 @@ xfun::pkg_attach2("tidyverse", # známe
                   "tidyrgee") # pokud nejsme zvyklí na práci s rgee, ale známe tidyverse, toto pomůže prohlížet metadata kolekcí
 
 # inicializujeme připojení k GEE
-ee_Initialize(user = "ledvinka@natur.cuni.cz",
-              drive = T) # někdy se vyplatí inicializovat i Google Drive, přes který se mohou zpracovávat mezivýsledky při práci s většími datasety
+ee_Initialize(drive = T) # někdy se vyplatí inicializovat i Google Drive, přes který se mohou zpracovávat mezivýsledky při práci s většími datasety
 
 # takto se odkážeme na kolekci obrázků, která je již na GEE připravena
 # v tomto případě klimatology z ECMWF

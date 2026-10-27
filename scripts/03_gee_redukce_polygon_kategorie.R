@@ -12,7 +12,7 @@ xfun::pkg_attach2("tidyverse",
 
 # připojíme se
 # výsledná data nejsou tak velká, takže není vyžadováno zpracování přes Drive
-ee_Initialize(user = "ledvinka@natur.cuni.cz")
+ee_Initialize()
 
 # odkážeme se na polygon
 catch <- ee$FeatureCollection("users/ledvinka/milesovsky")
